@@ -13,6 +13,6 @@ datavault-body.sql- PL/SQL Package Body. Contains hashkey functions and procedur
 
 control.sql - PL/SQL anonymous block to run load procedures
 
-scott-user-updates.sql - DML statements do simulate data change in source tables.
+scott-user-updates.sql - DML statements to simulate data change in source tables.
 
 select.sql - Select statements to recreate source tables and to show historic versions of the data. 
