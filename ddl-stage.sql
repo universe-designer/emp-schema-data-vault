@@ -81,3 +81,14 @@
 	"EMPNO_HASHKEY" RAW(16), 
 	"DEPTNO_HASHKEY" RAW(16)
    ) ;
+--------------------------------------------------------
+--  DDL for Table STG_SAT_LINK_WORKS_EFF
+--------------------------------------------------------
+
+CREATE TABLE STG_SAT_LINK_WORKS_EFF(
+ "WORKS_HASHKEY" RAW(16), 
+ "BEGIN_DATE" DATE,
+ "END_DATE" DATE,
+ "LOAD_DATE" DATE, 
+ "RECORDSOURCE" VARCHAR2(20)
+);
