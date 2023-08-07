@@ -1,13 +1,13 @@
 # emp-schema-data-vault
 This project shows how the famous scott emp sample tables would be designed in data vault
 
-scott.sql - The scott schema with sample data. Please obey the deviant copyright of this file.
+scott.sql - The scott schema with sample data. Please mind the deviant copyright of this file.
 
 ddl-stage.sql - Table definitions for staging tables
 
 ddl-core.sql - Table definitions for core tables
 
-datavault.sql - PL/SQL Package Header
+datavault.sql - PL/SQL Package Specification
 
 datavault-body.sql- PL/SQL Package Body. Contains hashkey functions and procedures to load the data vault tables.
 
