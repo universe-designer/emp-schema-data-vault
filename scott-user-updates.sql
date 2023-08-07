@@ -25,6 +25,12 @@ WHERE ename='SCOTT';
 
 --Check historical SELECT statement
 
+--Change relationship to create new links and entries in effectivity satellites
+UPDATE emp SET deptno=10 WHERE ename='KING';
+UPDATE emp SET deptno=20 WHERE ename='KING';
+UPDATE emp SET deptno=30 WHERE ename='KING';
+UPDATE emp SET deptno=10 WHERE ename='KING';
+
 
 SELECT *
 FROM emp;
