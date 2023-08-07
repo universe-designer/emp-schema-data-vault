@@ -256,6 +256,79 @@ AS
       
    END load_link_manager;
 
+   PROCEDURE load_sat_link_works_eff
+   AS
+   BEGIN
+    /* Für den Link-Effectivity-Satellite müssen 4 Szenarien abgebildet werden
+    --1. Link ist neu
+    --2. Link ist weg
+    --3. Link ist wieder da
+    --4. Link ist noch da
+    Daraus ergeben sich 4 Insert-Operationen. Ihre richtige Reihenfolge ist wichtig für die Historie
+    */
+
+       
+    
+    --1. Link ist neu:       Schau ob Link aus Quellsystem auch im Core ist --> Nein: begin_date (heute) end_date (offen)
+    --4. Link ist noch da:   Schau ob Link aus Quellsystem auch im Core ist --> Ja: Tu nichts
+    --3. Link ist wieder da: Schau ob Link im Core auch im Quellsystem ist --> Ja: Gibt es einen offenen Link eff. Sat.-Eintrag? Nein: begin_date (heute) end_date (offen)
+    --4. Lin ist noch da:    Schau ob Link im Core auch im Quellsystem ist --> Ja: Gibt es einen offenen Link eff. Sat.-Eintrag? Ja: Tu nichts
+    --2. Link ist weg:       Schau ob Link im Core auch im Quellsystem ist --> Nein: begin_date (bisheriges) end_date (heute)
+    
+    DELETE stg_sat_link_works_eff;
+
+    --2. Link ist weg:       Schau ob Link im Core auch im Quellsystem ist --> Nein: begin_date (bisheriges) end_date (heute)
+    INSERT INTO stg_sat_link_works_eff (WORKS_HASHKEY, BEGIN_DATE, END_DATE, LOAD_DATE, RECORDSOURCE)
+    
+    SELECT w.works_hashkey, f.begin_date AS begin_date, sysdate AS END_DATE, sysdate AS LOAD_DATE, 'DWH' AS recordsource
+    FROM hub_emp e 
+    INNER JOIN link_works w ON e.empno_hashkey=w.empno_hashkey
+    INNER JOIN hub_dept d ON w.deptno_hashkey=d.deptno_hashkey
+    INNER JOIN sat_link_works_eff f ON f.works_hashkey=w.works_hashkey
+    INNER JOIN (SELECT works_hashkey, MAX(load_date) AS load_date
+                FROM sat_link_works_eff
+                GROUP BY works_hashkey) c ON c.works_hashkey=f.works_hashkey 
+                                         AND c.load_date=f.load_date 
+                                         AND f.end_date >= TO_DATE('31.12.9999','dd.mm.yyyy')
+    WHERE NOT EXISTS (SELECT 1
+                      FROM emp
+                      WHERE emp.empno=e.empno_bk AND emp.deptno=d.deptno_bk)
+    
+    
+    --3. Link ist wieder da: Schau ob Link im Core auch im Quellsystem ist --> Ja: Gibt es einen offenen Link eff. Sat.-Eintrag? Nein: begin_date (heute) end_date (offen)
+    --INSERT INTO sat_link_works_eff (WORKS_HASHKEY, BEGIN_DATE, END_DATE, LOAD_DATE, RECORDSOURCE)
+    UNION ALL
+    SELECT w.works_hashkey,  sysdate AS begin_date, TO_DATE('31.12.9999','dd.mm.yyyy') AS END_DATE, sysdate AS LOAD_DATE, 'DWH' AS recordsource
+    FROM hub_emp e 
+    INNER JOIN link_works w ON e.empno_hashkey=w.empno_hashkey
+    INNER JOIN hub_dept d ON w.deptno_hashkey=d.deptno_hashkey
+    INNER JOIN sat_link_works_eff f ON f.works_hashkey=w.works_hashkey
+    INNER JOIN (SELECT works_hashkey, MAX(load_date) AS load_date
+                FROM sat_link_works_eff
+                GROUP BY works_hashkey) c ON c.works_hashkey=f.works_hashkey 
+                                         AND c.load_date=f.load_date 
+                                         AND f.end_date < sysdate
+    WHERE EXISTS (SELECT 1
+                      FROM emp
+                      WHERE emp.empno=e.empno_bk AND emp.deptno=d.deptno_bk);
+
+
+    --1. Link ist neu:       Schau ob Link aus Quellsystem auch im Core ist --> Nein: begin_date (heute) end_date (offen)
+    INSERT INTO stg_sat_link_works_eff (WORKS_HASHKEY, BEGIN_DATE, END_DATE, LOAD_DATE, RECORDSOURCE)
+    --UNION ALL
+    --SELECT  utl_raw.cast_to_raw(datavault.hashkey(empno, deptno)) AS works_hashkey, sysdate AS begin_date, TO_DATE('31.12.9999','dd.mm.yyyy') AS END_DATE, sysdate AS LOAD_DATE, 'DWH' AS recordsource   
+    (SELECT  datavault.hashkey(empno, deptno) AS works_hashkey, sysdate AS begin_date, TO_DATE('31.12.9999','dd.mm.yyyy') AS END_DATE, sysdate AS LOAD_DATE, 'DWH' AS recordsource   
+    FROM emp e
+    WHERE NOT EXISTS (SELECT 1
+                      FROM sat_link_works_eff f                
+                      WHERE datavault.hashkey(e.empno, e.deptno) = f.works_hashkey));
+    
+    INSERT INTO sat_link_works_eff (WORKS_HASHKEY, BEGIN_DATE, END_DATE, LOAD_DATE, RECORDSOURCE)
+    SELECT WORKS_HASHKEY, BEGIN_DATE, END_DATE, LOAD_DATE, RECORDSOURCE
+    FROM stg_sat_link_works_eff;
+    
+   END load_sat_link_works_eff;
+
    PROCEDURE load_vault
    AS
    BEGIN
@@ -267,6 +340,7 @@ AS
       load_sat_emp20;
       load_link_manager;
       load_link_works;
+      load_sat_link_works_eff;
       COMMIT;
       
    END load_vault;
