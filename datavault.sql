@@ -36,6 +36,8 @@ AS
     PROCEDURE load_link_manager;
     
     PROCEDURE load_link_works;
+
+    PROCEDURE load_sat_link_works_eff;
     
     PROCEDURE load_vault;
     
