@@ -54,8 +54,13 @@ ORDER BY empno_hashkey, load_date ASC;
 
 
 --emp mit Historie
-SELECT e.empno_bk, s20.ename, TO_CHAR(s20.load_date, 'dd.mm.yyyy hh:mi:ss') load_date20, TO_CHAR(s5.load_date, 'dd.mm.yyyy hh:mi:ss') load_date5, s5.sal
+SELECT e.empno_bk, s20.ename, s5.sal,
+d.deptno_bk, sd.dname, sd.loc,
+f.begin_date, f.end_date, current_record
 FROM hub_emp e INNER JOIN sat_emp5 s5 ON e.empno_hashkey=s5.empno_hashkey
 INNER JOIN sat_emp20 s20 ON e.empno_hashkey=s20.empno_hashkey --AND (s20.load_date > s5.load_date OR s20.load_date < s5.load_date)
-WHERE empno_bk=7369
-ORDER BY e.empno_hashkey, s20.load_date, s5.load_date;
+INNER JOIN link_works l ON e.empno_hashkey=l.empno_hashkey
+INNER JOIN v_sat_link_works_eff f ON l.works_hashkey=f.works_hashkey
+INNER JOIN hub_dept d ON l.deptno_hashkey=d.deptno_hashkey
+INNER JOIN sat_dept sd ON d.deptno_hashkey=sd.deptno_hashkey
+ORDER BY e.empno_hashkey, f.load_date
