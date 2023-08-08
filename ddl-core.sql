@@ -19,8 +19,7 @@
    (	"LOAD_DATE" DATE, 
 	"EMPNO_HASHKEY" RAW(16), 
 	"RECORDSOURCE" VARCHAR2(20), 
-	"EMPNO_BK" NUMBER(4,0), 
-	"LAST_SEEN" DATE
+	"EMPNO_BK" NUMBER(4,0)
    ) ;
 --------------------------------------------------------
 --  DDL for Table SAT_DEPT
