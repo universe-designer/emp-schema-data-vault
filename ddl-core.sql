@@ -112,3 +112,22 @@ FROM (  --current links
         SELECT h.*, 0 AS current_record
         FROM SAT_LINK_WORKS_EFF h
         WHERE h.end_date < sysdate);
+
+--------------------------------------------------------
+--  DDL for View V_SAT_EMP5
+--------------------------------------------------------        
+--complete history / current flag
+CREATE OR REPLACE VIEW v_sat_emp5
+AS
+SELECT s.empno_hashkey, s.load_date, s.recordsource,s.hashdiff,
+s.load_date AS valid_from, 
+LEAD(s.load_date, 1, TO_DATE('31.12.9999','dd.mm.yyyy')) OVER (PARTITION BY s.empno_hashkey ORDER BY s.load_date) AS valid_to,
+CASE 
+  LEAD('has_successor', 1, 'has_no_successor') OVER (PARTITION BY s.empno_hashkey ORDER BY s.load_date) 
+  WHEN 'has_no_successor' THEN 1
+  ELSE 0 
+END AS current_flag,
+s.job,
+s.sal,
+s.comm
+FROM sat_emp5 s;
